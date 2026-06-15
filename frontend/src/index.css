@@ -1,0 +1,481 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --fedda-bg: #0b0d10;
+  --fedda-bg-elevated: #12151a;
+  --fedda-bg-panel: #171b22;
+  --fedda-border: rgba(255, 255, 255, 0.08);
+  --fedda-border-strong: rgba(255, 255, 255, 0.14);
+  --fedda-text: #f3f5f7;
+  --fedda-text-muted: #9aa3b2;
+  --fedda-accent: #6ea8ff;
+  --fedda-accent-soft: rgba(110, 168, 255, 0.14);
+  --fedda-success: #3ecf8e;
+  --fedda-warn: #f5b942;
+  --fedda-danger: #ff6b6b;
+  --fedda-radius: 14px;
+  --fedda-radius-sm: 10px;
+  --fedda-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --fedda-page-width: 1280px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(110, 168, 255, 0.08), transparent 32%),
+    var(--fedda-bg);
+  color: var(--fedda-text);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.fedda-app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.fedda-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(14px);
+  background: rgba(11, 13, 16, 0.82);
+  border-bottom: 1px solid var(--fedda-border);
+}
+
+.fedda-header-main,
+.fedda-main,
+.fedda-page {
+  width: min(var(--fedda-page-width), calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.fedda-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0 10px;
+}
+
+.fedda-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fedda-brand-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--fedda-accent), #9b7bff);
+  box-shadow: 0 0 18px rgba(110, 168, 255, 0.45);
+}
+
+.fedda-brand strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.fedda-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fedda-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--fedda-text-muted);
+  font-size: 0.78rem;
+}
+
+.fedda-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fedda-breadcrumbs button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.fedda-breadcrumbs button:hover {
+  color: var(--fedda-text);
+}
+
+.fedda-breadcrumb-current {
+  color: var(--fedda-text);
+}
+
+.fedda-system-strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 0 12px;
+}
+
+.fedda-system-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fedda-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--fedda-border);
+  background: var(--fedda-bg-elevated);
+  font-size: 0.75rem;
+  color: var(--fedda-text-muted);
+}
+
+.fedda-status-pill.online .fedda-status-dot {
+  background: var(--fedda-success);
+}
+
+.fedda-status-pill.offline .fedda-status-dot {
+  background: var(--fedda-danger);
+}
+
+.fedda-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.fedda-log-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: min(520px, calc(100vw - 32px));
+  max-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--fedda-border-strong);
+  border-radius: var(--fedda-radius);
+  background: var(--fedda-bg-panel);
+  box-shadow: var(--fedda-shadow);
+}
+
+.fedda-log-panel-header,
+.fedda-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fedda-log-panel-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--fedda-border);
+}
+
+.fedda-log-list {
+  max-height: 260px;
+  overflow: auto;
+  padding: 8px 12px 12px;
+}
+
+.fedda-log-entry {
+  display: grid;
+  grid-template-columns: 72px 72px 1fr;
+  gap: 8px;
+  font-size: 0.74rem;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--fedda-text-muted);
+}
+
+.fedda-log-entry.fedda-log-error {
+  color: #ffb4b4;
+}
+
+.fedda-log-entry.fedda-log-success {
+  color: #9dffd0;
+}
+
+.fedda-log-empty {
+  margin: 0;
+  color: var(--fedda-text-muted);
+  font-size: 0.82rem;
+}
+
+.fedda-main {
+  flex: 1;
+  padding: 24px 0 48px;
+}
+
+.fedda-page-hero {
+  margin-bottom: 24px;
+}
+
+.fedda-page-hero.compact {
+  margin-bottom: 16px;
+}
+
+.fedda-page-hero h1 {
+  margin: 0 0 8px;
+  font-size: clamp(1.6rem, 2vw, 2.2rem);
+}
+
+.fedda-page-hero p {
+  margin: 0;
+  color: var(--fedda-text-muted);
+  max-width: 62ch;
+}
+
+.fedda-eyebrow {
+  margin: 0 0 8px;
+  color: var(--fedda-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fedda-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.fedda-workflow-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  border: 1px solid var(--fedda-border);
+  border-radius: var(--fedda-radius);
+  background: var(--fedda-bg-elevated);
+  overflow: hidden;
+  cursor: pointer;
+  color: inherit;
+  box-shadow: var(--fedda-shadow);
+}
+
+.fedda-workflow-card-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #0f1218;
+}
+
+.fedda-workflow-card-media img,
+.fedda-workflow-card-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fedda-workflow-card-media video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.fedda-workflow-card:hover .fedda-workflow-card-media video {
+  opacity: 1;
+}
+
+.fedda-workflow-card-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.55));
+}
+
+.fedda-workflow-card-icon {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fedda-workflow-card-copy {
+  padding: 14px 14px 16px;
+}
+
+.fedda-workflow-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.fedda-workflow-card-copy h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.fedda-workflow-card-copy p {
+  margin: 0;
+  color: var(--fedda-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.fedda-panel {
+  border: 1px solid var(--fedda-border);
+  border-radius: var(--fedda-radius);
+  background: var(--fedda-bg-panel);
+  overflow: hidden;
+}
+
+.fedda-panel-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--fedda-border);
+}
+
+.fedda-panel-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.fedda-panel-subtitle {
+  margin: 4px 0 0;
+  color: var(--fedda-text-muted);
+  font-size: 0.86rem;
+}
+
+.fedda-panel-body {
+  padding: 18px;
+}
+
+.fedda-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--fedda-radius-sm);
+  border: 1px solid var(--fedda-border);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fedda-btn-primary {
+  background: var(--fedda-accent-soft);
+  border-color: rgba(110, 168, 255, 0.35);
+  color: var(--fedda-text);
+}
+
+.fedda-btn-secondary,
+.fedda-btn-ghost {
+  background: var(--fedda-bg-elevated);
+  color: var(--fedda-text);
+}
+
+.fedda-btn-ghost {
+  background: transparent;
+}
+
+.fedda-btn-danger {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: rgba(255, 107, 107, 0.35);
+}
+
+.fedda-btn:hover {
+  border-color: var(--fedda-border-strong);
+}
+
+.fedda-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  text-transform: capitalize;
+  border: 1px solid var(--fedda-border);
+}
+
+.fedda-badge-success {
+  color: var(--fedda-success);
+  border-color: rgba(62, 207, 142, 0.35);
+}
+
+.fedda-badge-warn {
+  color: var(--fedda-warn);
+  border-color: rgba(245, 185, 66, 0.35);
+}
+
+.fedda-badge-lab {
+  color: #c6a7ff;
+  border-color: rgba(198, 167, 255, 0.35);
+}
+
+.fedda-empty {
+  padding: 28px 12px;
+  text-align: center;
+}
+
+.fedda-empty h3 {
+  margin: 0 0 8px;
+}
+
+.fedda-empty p {
+  margin: 0 auto;
+  max-width: 52ch;
+  color: var(--fedda-text-muted);
+}
+
+.fedda-toast-stack {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 60;
+}
+
+.fedda-toast {
+  min-width: 220px;
+  padding: 10px 14px;
+  border-radius: var(--fedda-radius-sm);
+  border: 1px solid var(--fedda-border);
+  background: var(--fedda-bg-panel);
+  box-shadow: var(--fedda-shadow);
+}
+
+.fedda-toast-success {
+  border-color: rgba(62, 207, 142, 0.35);
+}
+
+.fedda-toast-error {
+  border-color: rgba(255, 107, 107, 0.35);
+}

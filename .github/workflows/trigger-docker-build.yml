@@ -1,0 +1,22 @@
+name: Trigger Docker Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'config/**'
+      - 'assets/**'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Docker repo rebuild
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.DOCKER_REPO_PAT }}" \
+            https://api.github.com/repos/Feddakalkun/comfyuifeddafront-docker/dispatches \
+            -d '{"event_type":"main_repo_updated"}'

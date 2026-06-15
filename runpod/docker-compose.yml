@@ -1,0 +1,28 @@
+version: '3.8'
+
+# Local testing only — for RunPod, use the template instead
+services:
+  fedda:
+    build:
+      context: ..
+      dockerfile: runpod/Dockerfile
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    ports:
+      - "3000:3000"
+      - "8199:8199"
+    volumes:
+      - fedda-workspace:/workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  fedda-workspace:
+
+

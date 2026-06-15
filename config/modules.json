@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "generated_for": "FEDDA Hub v20",
+  "policy": {
+    "default_enabled": true,
+    "missing_module_behavior": "hide UI entrypoints, keep core app running",
+    "install_strategy": "core modules install first; booster modules can be installed independently later"
+  },
+  "modules": [
+    {
+      "id": "core-shell",
+      "label": "Core Shell",
+      "pack": "core",
+      "area": "core",
+      "enabled": true,
+      "tabs": ["home", "image", "video", "gallery", "library", "ollama"],
+      "workflows": [],
+      "custom_nodes": [],
+      "models": [],
+      "notes": "Shared app shell, gallery, LoRA library, Ollama models. Custom nodes are added per workflow module as you build them."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+﻿# Node / frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.tmp/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.local
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Runtime / heavy folders
+frontend/public/lora-previews/
+ComfyUI/
+python_embeded/
+venv/
+git/
+git_embeded/
+node_embeded/
+node-v*-win-x64/
+ollama_embeded/
+mockingbird_tts/
+VoxCPM/
+fanvue-hub/
+cache/
+logs/
+output/
+temp/
+input/
+models/
+checkpoints/
+loras/
+tiktok_downloads/
+*.safetensors
+*.ckpt
+*.pth
+
+# Python generated files
+__pycache__/
+*.pyc
+
+# Local runtime state
+.last_node_update
+.gitconfig
+config/runtime_settings.json
+config/agent_chat_store.json
+config/agent_memory.db
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Local installer/test targets
+install/app/
+install/logs/
+*.log
+
+# Local-only scratch
+assets/design/
+assets/landingpage/
+Feddafront_Distribution/
+push-to-github.bat
+fix_gpu.bat
+HANDOVER_TO_LTX.md
+harvest_log.txt
+backend/prompt_harvester.py
+
