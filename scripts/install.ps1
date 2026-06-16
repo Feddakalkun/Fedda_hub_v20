@@ -2,6 +2,10 @@
 # FEDDA Full Installer - Portable (Embedded Python/Node/Git/Ollama)
 # ============================================================================ 
 
+param(
+    [switch]$AutoConfirm
+)
+
 $ErrorActionPreference = "Stop"
 $ScriptPath = $PSScriptRoot
 $RootPath = Split-Path -Parent $ScriptPath
@@ -333,10 +337,14 @@ if ($IsUnsafe) {
     Write-Host "    - Permission issues" -ForegroundColor Gray
     Write-Host "    - Accidental deletion" -ForegroundColor Gray
     Write-Host ""
-    $PathConfirm = Read-Host "  Continue anyway? (Y/N)"
-    if ($PathConfirm -ne "Y" -and $PathConfirm -ne "y") {
-        Write-Host "`n  Move the folder and run install.bat again." -ForegroundColor Yellow
-        exit 0
+    if ($AutoConfirm) {
+        Write-Host "  Auto-confirm: continuing despite path warning." -ForegroundColor Gray
+    } else {
+        $PathConfirm = Read-Host "  Continue anyway? (Y/N)"
+        if ($PathConfirm -ne "Y" -and $PathConfirm -ne "y") {
+            Write-Host "`n  Move the folder and run install.bat again." -ForegroundColor Yellow
+            exit 0
+        }
     }
 }
 elseif ($IsCDrive) {
@@ -425,10 +433,14 @@ Write-Host "================================================================" -F
 Write-Host ""
 
 # Ask user to confirm
-$Confirm = Read-Host "  Does this look correct? Press ENTER to install, or type N to cancel"
-if ($Confirm -eq "N" -or $Confirm -eq "n") {
-    Write-Host "`n  Installation cancelled. Contact FEDDA for help." -ForegroundColor Yellow
-    exit 0
+if ($AutoConfirm) {
+    Write-Host "  Auto-confirm: starting install..." -ForegroundColor Gray
+} else {
+    $Confirm = Read-Host "  Does this look correct? Press ENTER to install, or type N to cancel"
+    if ($Confirm -eq "N" -or $Confirm -eq "n") {
+        Write-Host "`n  Installation cancelled. Contact FEDDA for help." -ForegroundColor Yellow
+        exit 0
+    }
 }
 
 Write-Log "System check passed. GPU: $GPUName | RAM: ${RAM_GB}GB | Disk: ${FreeSpace_GB}GB free"

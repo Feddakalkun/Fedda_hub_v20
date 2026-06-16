@@ -225,13 +225,13 @@ echo.
 echo   Starting Full Install...
 echo.
 
-powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\install.ps1"
+powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\install.ps1" -AutoConfirm
 
 if %errorlevel% neq 0 (
     echo.
     echo   [ERROR] Installation failed! Check logs\install_full_log.txt
     echo.
-    pause
+    if not "%1"=="FULL" pause
     exit /b %errorlevel%
 )
 
@@ -259,13 +259,13 @@ echo.
 echo   Starting Lite Install...
 echo.
 
-powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\install_lite.ps1"
+powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%\install_lite.ps1" -AutoConfirm
 
 if %errorlevel% neq 0 (
     echo.
     echo   [ERROR] Installation failed! Check logs\install_fast_log.txt
     echo.
-    pause
+    if not "%1"=="LITE" pause
     exit /b %errorlevel%
 )
 
@@ -293,5 +293,5 @@ if exist "%BASE_DIR%\logs\install_report.txt" (
     echo   --- END REPORT ---
     echo.
 )
-pause
+if "%1"=="" pause
 

@@ -5,6 +5,10 @@
 # Creates: embedded Python runtime + ComfyUI + custom nodes + frontend + backend
 # ============================================================================
 
+param(
+    [switch]$AutoConfirm
+)
+
 $ErrorActionPreference = "Stop"
 $ScriptPath = $PSScriptRoot
 $RootPath = Split-Path -Parent $ScriptPath
@@ -300,7 +304,7 @@ Write-Host ""
 if (-not $AllGood) {
     Write-Host "  MISSING REQUIREMENTS - install the tools marked in red above." -ForegroundColor Red
     Write-Host ""
-    Read-Host "  Press Enter to exit"
+    if (-not $AutoConfirm) { Read-Host "  Press Enter to exit" }
     exit 1
 }
 
@@ -324,8 +328,14 @@ if (-not $OllamaRunning) {
         Write-Host "    3) Download & install embedded Ollama (portable, included)" -ForegroundColor Gray
     }
     Write-Host ""
-    $OllamaChoice = Read-Host "  Enter 1, 2, or 3 (default: 1)"
-    
+    if ($AutoConfirm) {
+        $OllamaChoice = "1"
+        Write-Host "  Auto-confirm: continuing without Ollama (choice 1)" -ForegroundColor Gray
+    } else {
+        $OllamaChoice = Read-Host "  Enter 1, 2, or 3 (default: 1)"
+    }
+    if ([string]::IsNullOrWhiteSpace($OllamaChoice)) { $OllamaChoice = "1" }
+
     if ($OllamaChoice -eq "2") {
         Write-Host ""
         if ($OllamaInstalled) {
@@ -336,7 +346,7 @@ if (-not $OllamaRunning) {
             Write-Host "  Then run this installer again." -ForegroundColor White
         }
         Write-Host ""
-        Read-Host "  Press Enter to exit"
+        if (-not $AutoConfirm) { Read-Host "  Press Enter to exit" }
         exit 0
     }
     elseif ($OllamaChoice -eq "3") {
@@ -359,8 +369,12 @@ if (-not $OllamaRunning) {
 # Confirm
 Write-Host "  All system tools detected. Root: $RootPath" -ForegroundColor Gray
 Write-Host ""
-$Confirm = Read-Host "  Press ENTER to install, or N to cancel"
-if ($Confirm -eq "N" -or $Confirm -eq "n") { exit 0 }
+if ($AutoConfirm) {
+    Write-Host "  Auto-confirm: starting install..." -ForegroundColor Gray
+} else {
+    $Confirm = Read-Host "  Press ENTER to install, or N to cancel"
+    if ($Confirm -eq "N" -or $Confirm -eq "n") { exit 0 }
+}
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 

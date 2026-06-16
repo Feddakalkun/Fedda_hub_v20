@@ -131,7 +131,8 @@ echo [%date% %time%] Starting inner install.bat LITE>> "%INSTALL_LOG%"
 echo.
 
 pushd "%APP_DIR%"
-call scripts\install.bat LITE >> "%INSTALL_LOG%" 2>&1
+echo [%date% %time%] Running scripts\install.bat LITE>> "%INSTALL_LOG%"
+call scripts\install.bat LITE
 set "INNER_EXIT=!errorlevel!"
 popd
 
