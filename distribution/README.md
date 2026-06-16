@@ -17,7 +17,16 @@ YourFolder/
 
 Git for Windows must be installed: https://git-scm.com/download/win
 
-Everything else (Python, ComfyUI, Node deps for frontend) is installed by the inner setup.
+## Install choice
+
+The installer asks:
+
+| Mode | Best for | System impact |
+|------|----------|---------------|
+| **FULL** (default) | Distribution, clean machines | Everything in `app\` — portable Python, Git, Node, Ollama |
+| **LITE** | Pros with Git + Node 18+ already | Python/ComfyUI/caches still in `app\`; uses system Git/Node only to build frontend |
+
+Neither mode touches system Python or global pip.
 
 ## Re-run
 

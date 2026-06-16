@@ -165,25 +165,28 @@ echo ===========================================================================
 echo.
 echo   Choose installation type:
 echo.
-echo   [1] FULL INSTALL  (Recommended^)
-echo       Downloads Python, Node, Git, Ollama - everything included.
-echo       Nothing else needed. Fully portable.
+echo   [1] FULL  - Fully portable (recommended for distribution^)
+echo       Downloads Python, Git, Node, Ollama into this folder.
+echo       ComfyUI + pip packages + caches stay inside app\ too.
+echo       Does NOT touch system Python or global npm.
 echo       ~15 GB total, takes longer.
 echo.
 
 if "%HAS_GIT%"=="1" if "%HAS_NODE%"=="1" if "%HAS_NPM%"=="1" (
-    echo   [2] LITE INSTALL  (Faster^)
-    echo       Uses embedded Python 3.11.9 (auto-download^).
-    echo       Uses your system Git + Node/npm.
-    echo       Smaller download, faster install.
+    echo   [2] LITE  - Faster for pros with Git + Node already
+    echo       Embedded Python 3.11.9 still downloaded to app\python_embeded\
+    echo       Uses system Git + Node/npm only to build the frontend.
+    echo       ML runtime and caches still stay inside the install folder.
     echo.
     set "LITE_AVAILABLE=1"
 ) else (
-    echo   [2] LITE INSTALL  (Unavailable - missing system tools^)
-    echo       Requires Git, Node.js 18+, and npm installed.
+    echo   [2] LITE  - Unavailable (needs Git, Node.js 18+, and npm^)
     echo.
     set "LITE_AVAILABLE=0"
 )
+
+echo   Neither mode modifies your system Python installation.
+echo.
 
 echo ============================================================================
 echo.
