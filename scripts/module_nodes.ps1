@@ -49,8 +49,8 @@ function Get-FeddaNodeConfig {
         }
 
         if ($WantedNodeNames.Count -eq 0) {
-            Write-ModuleNodeLog "Module manifest has no custom node entries; installing all nodes from nodes.json." "Yellow"
-            return $AllNodes
+            Write-ModuleNodeLog "No custom nodes configured for enabled modules; skipping node install." "Green"
+            return @()
         }
 
         $SelectedNodes = @($AllNodes | Where-Object { $WantedNodeNames.Contains($_.name) })

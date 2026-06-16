@@ -701,6 +701,9 @@ $InstalledCount = 0
 $SkippedCount = 0
 $FailedCount = 0
 
+if (-not $NodesConfig -or $NodesConfig.Count -eq 0) {
+    Write-Log "No custom nodes configured - skipping (add modules in config/modules.json)."
+} else {
 foreach ($Node in $NodesConfig) {
     if ($Node.folder -eq "ComfyUI-GGUF" -and -not $InstallGguf) {
         Write-Log "[$($Node.name)] - Optional GGUF pack skipped (set FEDDA_INSTALL_GGUF=1 to include)"
@@ -805,56 +808,30 @@ __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
         $SkippedCount++
     }
 }
-
-$WanAnimatePatch = Join-Path $RootPath "scripts\patch_wan_animate_preprocess.ps1"
-if (Test-Path $WanAnimatePatch) {
-    Write-Log "Applying WanAnimate preprocess compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$WanAnimatePatch" -RootPath "$RootPath"
 }
 
-$LtxVideoPatch = Join-Path $RootPath "scripts\patch_ltxvideo_kornia.ps1"
-if (Test-Path $LtxVideoPatch) {
-    Write-Log "Applying LTXVideo Kornia compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$LtxVideoPatch" -RootPath "$RootPath"
+function Apply-NodePatchIfPresent {
+    param([string]$RelativeNodeFolder, [string]$PatchScriptName, [string]$Label)
+    $NodeDir = Join-Path $CustomNodesDir $RelativeNodeFolder
+    $Patch = Join-Path $RootPath "scripts\$PatchScriptName"
+    if ((Test-Path $NodeDir) -and (Test-Path $Patch)) {
+        Write-Log "Applying $Label..."
+        & powershell -ExecutionPolicy Bypass -File "$Patch" -RootPath "$RootPath"
+    }
 }
 
-$KJNodesPatch = Join-Path $RootPath "scripts\patch_kjnodes_ltx_audio_vae.ps1"
-if (Test-Path $KJNodesPatch) {
-    Write-Log "Applying KJNodes LTX audio VAE compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$KJNodesPatch" -RootPath "$RootPath"
-}
+Apply-NodePatchIfPresent "ComfyUI-WanAnimatePreprocess" "patch_wan_animate_preprocess.ps1" "WanAnimate preprocess patch"
+Apply-NodePatchIfPresent "ComfyUI-LTXVideo" "patch_ltxvideo_kornia.ps1" "LTXVideo Kornia patch"
+Apply-NodePatchIfPresent "ComfyUI-KJNodes" "patch_kjnodes_ltx_audio_vae.ps1" "KJNodes LTX audio VAE patch"
 
 Pause-Step
 
-# 7. Comprehensive Dependencies (Updated with fixes)
-Write-Log "`n[ComfyUI 7/9] Installing comprehensive dependencies..."
-
-# 7.1 Install Build Tools first (Fix for insightface)
-Write-Log "Installing build dependencies..."
-Run-Pip "install cmake ninja Cython"
-
-# 7.1.5 Install insightface early with pre-built wheel (avoid compilation)
-Write-Log "Installing insightface (pre-built wheel)..."
-Run-Pip "install insightface --prefer-binary --no-build-isolation"
-
-# 7.2 Main Dependencies
+# 7. FEDDA backend bridge (workflow packs add extras when modules are enabled)
+Write-Log "`n[ComfyUI 7/9] Installing FEDDA backend dependencies..."
 $Deps = @(
-    "accelerate", "transformers", "diffusers", "safetensors",
-    "huggingface-hub", "onnxruntime-gpu", "onnxruntime", "omegaconf",
-    "aiohttp", "aiohttp-sse",
-    "pytube", "yt-dlp", "moviepy", "youtube-transcript-api",
-    "numba",
-    "imageio", "imageio-ffmpeg", "av",
-    "gdown", "pandas", "reportlab", "google-auth>=2.45.0", "google-auth-oauthlib", "google-auth-httplib2",
-    "GPUtil", "wandb",
-    "piexif", "rembg",
-    "pillow-heif",
-    "librosa", "soundfile",
-    "selenium", "webdriver-manager", "beautifulsoup4", "lxml", "shapely",
-    "deepdiff", "fal_client", "matplotlib", "scipy", "scikit-image", "scikit-learn",
-    "timm", "colour-science", "blend-modes", "loguru",
     "fastapi", "uvicorn[standard]", "python-multipart",
-    "browser-cookie3"
+    "aiohttp", "requests",
+    "huggingface-hub", "safetensors"
 )
 Run-Pip "install $($Deps -join ' ')"
 
@@ -880,43 +857,17 @@ else {
 
 Pause-Step
 
-# ============================================================================ 
-# 8.5 INSTALL BUNDLED LORAS
-# ============================================================================ 
-Write-Log "`n[ComfyUI 8.5/9] Installing Free Bundled LoRAs..."
-$TargetLoraDir = Join-Path $ComfyDir "models\loras\z-image"
-if (-not (Test-Path $TargetLoraDir)) {
-    New-Item -ItemType Directory -Path $TargetLoraDir -Force | Out-Null
-}
+Write-Log "Skipping workflow model and LoRA downloads (v20 core-shell has no registered workflows)."
 
-$SrcLoraDir = Join-Path $RootPath "assets\loras\z-image"
-if (Test-Path $SrcLoraDir) {
-    Copy-Item -Path "$SrcLoraDir\*" -Destination $TargetLoraDir -Recurse -Force
-    Write-Log "Bundled Z-Image LoRAs (Emmy, Zana) installed successfully."
-}
-else {
-    Write-Log "Warning: Bundled LoRAs not found in assets. Skipping."
-}
-
-Pause-Step
-
-# 8.6 Z-Image Turbo celeb LoRA pack is now UI-only (no auto-download in installer)
-Write-Log "Skipping automatic Z-Image Turbo celeb pack download (available in UI on demand)."
-Download-LoraPackPreviewImages -PythonExe $PyExe -ComfyDir $ComfyDir
-Pause-Step
-
-# 9. Configure ComfyUI-Manager Security (Weak Mode)
-Write-Log "`n[ComfyUI 9/9] Configuring ComfyUI-Manager Security..."
-# FIXED: Correct path is user/__manager not user/default/ComfyUI-Manager
-$ManagerConfigDir = Join-Path $ComfyDir "user\__manager"
-$ManagerConfigFile = Join-Path $ManagerConfigDir "config.ini"
-
-if (-not (Test-Path $ManagerConfigDir)) {
-    New-Item -ItemType Directory -Path $ManagerConfigDir -Force | Out-Null
-}
-
-# Always overwrite to ensure security_level is set to weak
-$ConfigContent = @"
+$ManagerNodeDir = Join-Path $ComfyDir "custom_nodes\ComfyUI-Manager"
+if (Test-Path $ManagerNodeDir) {
+    Write-Log "`n[ComfyUI 9/9] Configuring ComfyUI-Manager..."
+    $ManagerConfigDir = Join-Path $ComfyDir "user\__manager"
+    $ManagerConfigFile = Join-Path $ManagerConfigDir "config.ini"
+    if (-not (Test-Path $ManagerConfigDir)) {
+        New-Item -ItemType Directory -Path $ManagerConfigDir -Force | Out-Null
+    }
+    $ConfigContent = @"
 [default]
 preview_method = auto
 git_exe = 
@@ -935,35 +886,18 @@ always_lazy_install = False
 network_mode = public
 db_mode = remote
 "@
-Set-Content -Path $ManagerConfigFile -Value $ConfigContent
-Write-Log "Security level set to 'weak' - all custom nodes can auto-install."
+    Set-Content -Path $ManagerConfigFile -Value $ConfigContent
+    Write-Log "ComfyUI-Manager configured."
+}
 
-# Enforce preview defaults in Comfy user settings.
 $PreviewSetupScript = Join-Path $ScriptPath "setup_comfyui_config.py"
 if (Test-Path $PreviewSetupScript) {
     try {
         Start-Process -FilePath $PyExe -ArgumentList "`"$PreviewSetupScript`"" -NoNewWindow -Wait
-        Write-Log "Comfy preview defaults configured (auto live preview)."
+        Write-Log "Comfy preview defaults configured."
     }
     catch {
         Write-Log "WARNING: Could not apply preview defaults (non-fatal): $_"
-    }
-}
-
-# Ensure Z-Image core model files exist on fresh install so generation does not fail validation.
-$EnsureZImageScript = Join-Path $ScriptPath "ensure_zimage_core_models.ps1"
-if (Test-Path $EnsureZImageScript) {
-    try {
-        Write-Log "Ensuring Z-Image core models..."
-        & powershell -ExecutionPolicy Bypass -File "$EnsureZImageScript" -SilentMode
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log "Z-Image core models ready."
-        } else {
-            Write-Log "WARNING: Z-Image core model ensure returned code $LASTEXITCODE (non-fatal)."
-        }
-    }
-    catch {
-        Write-Log "WARNING: Z-Image core model ensure failed (non-fatal): $_"
     }
 }
 

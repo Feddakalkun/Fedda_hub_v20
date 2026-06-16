@@ -387,23 +387,8 @@ if (Test-Path $PreviewSetupScript) {
     Write-Host "  [WARNING] setup_comfyui_config.py not found, skipping preview defaults." -ForegroundColor Yellow
 }
 
-# Ensure Z-Image core model files exist so prompts don't fail validation on fresh installs.
-Write-Host "`n[2c/3] Ensuring Z-Image core models..." -ForegroundColor Yellow
-$EnsureZImageScript = Join-Path $RootPath "scripts\ensure_zimage_core_models.ps1"
-if (Test-Path $EnsureZImageScript) {
-    try {
-        & powershell -ExecutionPolicy Bypass -File "$EnsureZImageScript" -SilentMode
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "  Z-Image core models ready." -ForegroundColor Green
-        } else {
-            Write-Host "  [WARNING] Z-Image core model check returned code $LASTEXITCODE (non-fatal)." -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Host "  [WARNING] Z-Image core model ensure failed (non-fatal): $_" -ForegroundColor Yellow
-    }
-} else {
-    Write-Host "  [WARNING] ensure_zimage_core_models.ps1 not found, skipping." -ForegroundColor Yellow
-}
+# Workflow model downloads run only when a module registers those workflows (v20 core-shell skips).
+Write-Host "`n[2c/3] Skipping workflow model bootstrap (no workflows in modules.json)." -ForegroundColor Gray
 
 
 # ============================================================================

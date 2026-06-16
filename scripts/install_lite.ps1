@@ -506,31 +506,12 @@ Write-Step "Installing ComfyUI requirements..."
 $ComfyReq = Join-Path $ComfyDir "requirements.txt"
 Venv-Pip "install -r `"$ComfyReq`""
 
-Write-Step "Installing build tools..."
-Venv-Pip "install cmake ninja Cython"
-
-Write-Step "Installing insightface..."
-Venv-Pip "install insightface --prefer-binary --no-build-isolation"
-
-# Comprehensive deps (same as portable)
-Write-Step "Installing comprehensive dependencies..."
+# v20 core-shell only: backend bridge deps (workflow packs add their own extras later)
+Write-Step "Installing FEDDA backend dependencies..."
 $Deps = @(
-    "accelerate", "transformers", "diffusers", "safetensors",
-    "huggingface-hub", "onnxruntime-gpu", "onnxruntime", "omegaconf",
-    "aiohttp", "aiohttp-sse",
-    "pytube", "yt-dlp", "moviepy", "youtube-transcript-api",
-    "numba",
-    "imageio", "imageio-ffmpeg", "av",
-    "gdown", "pandas", "reportlab",
-    "GPUtil", "wandb",
-    "piexif", "rembg", "pillow-heif",
-    "librosa", "soundfile",
-    "beautifulsoup4", "lxml", "shapely",
-    "deepdiff", "matplotlib", "scipy", "scikit-image", "scikit-learn",
-    "timm", "colour-science", "blend-modes", "loguru",
-    "ultralytics", "opencv-python-headless", "dill",
     "fastapi", "uvicorn[standard]", "python-multipart",
-    "browser-cookie3"
+    "aiohttp", "requests",
+    "huggingface-hub", "safetensors"
 )
 Venv-Pip "install $($Deps -join ' ')"
 
@@ -563,6 +544,9 @@ if (-not (Test-Path $CustomNodesDir)) { New-Item -ItemType Directory -Path $Cust
 
 $Installed = 0; $Skipped = 0; $Failed = 0
 
+if (-not $NodesConfig -or $NodesConfig.Count -eq 0) {
+    Write-Step "No custom nodes configured - skipping (add modules in config/modules.json)." "Green"
+} else {
 foreach ($Node in $NodesConfig) {
     if ($Node.local -eq $true) {
         Write-Step "  [$($Node.name)] Local - skipped" "Gray"
@@ -593,30 +577,27 @@ foreach ($Node in $NodesConfig) {
         $Skipped++
     }
 }
-
-$NodeColor = "Green"
-if ($Failed -gt 0) { $NodeColor = "Yellow" }
-Write-Step "Nodes: $Installed installed, $Skipped already present, $Failed failed" $NodeColor
-
-$WanAnimatePatch = Join-Path $RootPath "scripts\patch_wan_animate_preprocess.ps1"
-if (Test-Path $WanAnimatePatch) {
-    Write-Step "Applying WanAnimate preprocess compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$WanAnimatePatch" -RootPath "$RootPath"
 }
 
-$LtxVideoPatch = Join-Path $RootPath "scripts\patch_ltxvideo_kornia.ps1"
-if (Test-Path $LtxVideoPatch) {
-    Write-Step "Applying LTXVideo Kornia compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$LtxVideoPatch" -RootPath "$RootPath"
+if ($NodesConfig -and $NodesConfig.Count -gt 0) {
+    $NodeColor = "Green"
+    if ($Failed -gt 0) { $NodeColor = "Yellow" }
+    Write-Step "Nodes: $Installed installed, $Skipped already present, $Failed failed" $NodeColor
 }
 
-$KJNodesPatch = Join-Path $RootPath "scripts\patch_kjnodes_ltx_audio_vae.ps1"
-if (Test-Path $KJNodesPatch) {
-    Write-Step "Applying KJNodes LTX audio VAE compatibility patch..."
-    & powershell -ExecutionPolicy Bypass -File "$KJNodesPatch" -RootPath "$RootPath"
+function Apply-NodePatchIfPresent {
+    param([string]$RelativeNodeFolder, [string]$PatchScriptName, [string]$Label)
+    $NodeDir = Join-Path $CustomNodesDir $RelativeNodeFolder
+    $Patch = Join-Path $RootPath "scripts\$PatchScriptName"
+    if ((Test-Path $NodeDir) -and (Test-Path $Patch)) {
+        Write-Step "Applying $Label..."
+        & powershell -ExecutionPolicy Bypass -File "$Patch" -RootPath "$RootPath"
+    }
 }
 
-Write-Step "Skipping automatic Z-Image Turbo celeb pack download (available in UI on demand)." "Yellow"
+Apply-NodePatchIfPresent "ComfyUI-WanAnimatePreprocess" "patch_wan_animate_preprocess.ps1" "WanAnimate preprocess patch"
+Apply-NodePatchIfPresent "ComfyUI-LTXVideo" "patch_ltxvideo_kornia.ps1" "LTXVideo Kornia patch"
+Apply-NodePatchIfPresent "ComfyUI-KJNodes" "patch_kjnodes_ltx_audio_vae.ps1" "KJNodes LTX audio VAE patch"
 
 # ============================================================================
 # 5. FRONTEND
@@ -643,30 +624,20 @@ if (Test-Path $FrontendDir) {
 # ============================================================================
 Write-Header "STEP 6/7 - Assets & Configuration"
 
-# styles.csv
+# Optional assets — only when shipped with a workflow module (v20 core-shell skips these)
 $StylesSrc = Join-Path $RootPath "assets\styles.csv"
 if (Test-Path $StylesSrc) {
     Copy-Item -Path $StylesSrc -Destination $ComfyDir -Force
-    Write-Step "styles.csv installed." "Green"
-}
-
-# Bundled LoRAs
-$SrcLoras = Join-Path $RootPath "assets\loras\z-image"
-$DstLoras = Join-Path $ComfyDir "models\loras\z-image"
-if (Test-Path $SrcLoras) {
-    if (-not (Test-Path $DstLoras)) { New-Item -ItemType Directory -Path $DstLoras -Force | Out-Null }
-    Copy-Item -Path "$SrcLoras\*" -Destination $DstLoras -Recurse -Force
-    Write-Step "Bundled LoRAs (Emmy, Zana) installed." "Green"
+    Write-Step "styles.csv copied (optional workflow asset)." "Gray"
 } else {
-    Write-Step "No bundled LoRAs found (download_loras.bat later)." "Yellow"
+    Write-Step "No optional assets to copy." "Gray"
 }
 
-
-
-# ComfyUI-Manager config (weak security for auto-install)
-$MgrDir = Join-Path $ComfyDir "user\__manager"
-if (-not (Test-Path $MgrDir)) { New-Item -ItemType Directory -Path $MgrDir -Force | Out-Null }
-$MgrConfig = @"
+$MgrNodeDir = Join-Path $ComfyDir "custom_nodes\ComfyUI-Manager"
+if (Test-Path $MgrNodeDir) {
+    $MgrDir = Join-Path $ComfyDir "user\__manager"
+    if (-not (Test-Path $MgrDir)) { New-Item -ItemType Directory -Path $MgrDir -Force | Out-Null }
+    $MgrConfig = @"
 [default]
 preview_method = auto
 git_exe =
@@ -684,35 +655,21 @@ always_lazy_install = False
 network_mode = public
 db_mode = remote
 "@
-Set-Content -Path (Join-Path $MgrDir "config.ini") -Value $MgrConfig
-Write-Step "ComfyUI-Manager configured (weak security)." "Green"
+    Set-Content -Path (Join-Path $MgrDir "config.ini") -Value $MgrConfig
+    Write-Step "ComfyUI-Manager configured." "Green"
+}
 
-# Enforce preview defaults in Comfy user settings.
 $PreviewSetupScript = Join-Path $ScriptPath "setup_comfyui_config.py"
 if (Test-Path $PreviewSetupScript) {
     try {
         & $VenvPy "$PreviewSetupScript" 2>&1 | Out-Null
-        Write-Step "Comfy preview defaults configured (auto live preview)." "Green"
+        Write-Step "Comfy preview defaults configured." "Gray"
     } catch {
         Write-Step "WARNING: Could not apply preview defaults (non-fatal)." "Yellow"
     }
 }
 
-# Ensure Z-Image core model files exist on fresh install so generation does not fail validation.
-$EnsureZImageScript = Join-Path $ScriptPath "ensure_zimage_core_models.ps1"
-if (Test-Path $EnsureZImageScript) {
-    try {
-        Write-Step "Ensuring Z-Image core models..." "Yellow"
-        & powershell -ExecutionPolicy Bypass -File "$EnsureZImageScript" -SilentMode
-        if ($LASTEXITCODE -eq 0) {
-            Write-Step "Z-Image core models ready." "Green"
-        } else {
-            Write-Step "WARNING: Z-Image core model ensure returned code $LASTEXITCODE (non-fatal)." "Yellow"
-        }
-    } catch {
-        Write-Step "WARNING: Z-Image core model ensure failed (non-fatal)." "Yellow"
-    }
-}
+Write-Step "Skipping workflow model downloads (no workflows registered in v20 core-shell)." "Green"
 
 # ============================================================================
 # 7. SMOKE TEST
