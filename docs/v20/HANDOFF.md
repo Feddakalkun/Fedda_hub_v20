@@ -20,13 +20,21 @@ What is intentionally missing:
 - Custom nodes in `nodes.json` (add with first workflow module)
 - Workflow workspace pages
 
+## Distribution (single file)
+
+Give users **only** `FEDDA_v20_Installer.bat` (see `distribution/` mirror in git).
+
+They do **not** need the dev repo folder. The bat clones GitHub into `app\` and runs full setup.
+
+Test installs go in a separate folder (e.g. `Fedda_hub_v20_installed/`) — never commit runtime from there.
+
 ## Repo layout
 
 ```
-Fedda_hub_v20/
-  FEDDA_v20_Installer.bat
-  run.bat
-  app/
+Fedda_hub_v20/                  <- dev root (installer source, not all in git)
+  FEDDA_v20_Installer.bat       <- edit here, sync to distribution/
+  Fedda_hub_v20_installed/      <- your test install (local only)
+  app/                          <- git repo (commit + push)
     run.bat
     scripts/
     frontend/
