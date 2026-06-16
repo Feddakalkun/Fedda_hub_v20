@@ -234,7 +234,8 @@ if %errorlevel% neq 0 (
     echo.
     echo   [ERROR] Installation failed! Check logs\install_full_log.txt
     echo.
-    if not "%1"=="FULL" pause
+    echo   Press any key to close this window...
+    pause >nul
     exit /b %errorlevel%
 )
 
@@ -268,7 +269,8 @@ if %errorlevel% neq 0 (
     echo.
     echo   [ERROR] Installation failed! Check logs\install_fast_log.txt
     echo.
-    if not "%1"=="LITE" pause
+    echo   Press any key to close this window...
+    pause >nul
     exit /b %errorlevel%
 )
 
@@ -296,5 +298,6 @@ if exist "%BASE_DIR%\logs\install_report.txt" (
     echo   --- END REPORT ---
     echo.
 )
-if "%1"=="" pause
+echo   Press any key to close this window...
+pause >nul
 

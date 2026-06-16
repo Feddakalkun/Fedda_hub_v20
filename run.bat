@@ -1,11 +1,18 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
-cd /d "%~dp0"
-title FEDDA Launcher
 
-set "BASE_DIR=%~dp0"
-if "%BASE_DIR:~-1%"=="\" set "BASE_DIR=%BASE_DIR:~0,-1%"
+call :resolve_app_root
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Could not find FEDDA app folder.
+    echo         Run this from the install root or from app\
+    echo.
+    pause
+    exit /b 1
+)
+
+title FEDDA Launcher
 
 :: Keep all ML caches inside install folder (never write to %USERPROFILE%\.cache)
 set "HF_HOME=%BASE_DIR%\cache\huggingface"
@@ -235,6 +242,26 @@ exit /b
 @goto :wait_loop
 
 :: ============================================================================
+:: SUBROUTINE: RESOLVE APP ROOT (install root OR app\ subfolder)
+:: ============================================================================
+:resolve_app_root
+set "SCRIPT_DIR=%~dp0"
+if "%SCRIPT_DIR:~-1%"=="\" set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+if /i "!SCRIPT_DIR:~0,4!"=="\\?\" set "SCRIPT_DIR=!SCRIPT_DIR:~4!"
+
+if exist "!SCRIPT_DIR!\scripts\install.bat" (
+    set "BASE_DIR=!SCRIPT_DIR!"
+    cd /d "!BASE_DIR!"
+    exit /b 0
+)
+if exist "!SCRIPT_DIR!\app\scripts\install.bat" (
+    set "BASE_DIR=!SCRIPT_DIR!\app"
+    cd /d "!BASE_DIR!"
+    exit /b 0
+)
+exit /b 1
+
+:: ============================================================================
 :: SUBROUTINE: DETECT ENVIRONMENT (Portable vs Lite)
 :: ============================================================================
 :detect_env
@@ -293,8 +320,7 @@ exit /b 1
 :: SUBROUTINE: OLLAMA
 :: ============================================================================
 :launch_ollama
-set "BASE_DIR=%~dp0"
-if "%BASE_DIR:~-1%"=="\" set "BASE_DIR=%BASE_DIR:~0,-1%"
+call :resolve_app_root
 set "OLLAMA_HOST=127.0.0.1:11434"
 
 echo [%date% %time%] Starting Ollama...
@@ -313,8 +339,7 @@ exit /b
 :: SUBROUTINE: COMFYUI
 :: ============================================================================
 :launch_comfy
-set "BASE_DIR=%~dp0"
-if "%BASE_DIR:~-1%"=="\" set "BASE_DIR=%BASE_DIR:~0,-1%"
+call :resolve_app_root
 set "COMFYUI_DIR=%BASE_DIR%\ComfyUI"
 
 :: Detect Python (call detect_env subroutine)
@@ -351,8 +376,7 @@ exit /b
 :: SUBROUTINE: BACKEND
 :: ============================================================================
 :launch_backend
-set "BASE_DIR=%~dp0"
-if "%BASE_DIR:~-1%"=="\" set "BASE_DIR=%BASE_DIR:~0,-1%"
+call :resolve_app_root
 set "BACKEND_DIR=%BASE_DIR%\backend"
 
 :: Detect Python (call detect_env subroutine)

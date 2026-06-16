@@ -228,11 +228,13 @@ if !INNER_EXIT! neq 0 (
 echo.
 echo [4/4] Creating run.bat and update.bat ...
 
-(
-    @echo off
-    cd /d "%%~dp0app"
-    call run.bat %%*
-) > "%INSTALL_ROOT%\run.bat"
+copy /Y "%APP_DIR%\run.bat" "%INSTALL_ROOT%\run.bat" >nul
+if errorlevel 1 (
+    echo [WARN] Could not copy run.bat to install root - use app\run.bat
+    echo [%date% %time%] WARN: run.bat copy failed>> "%INSTALL_LOG%"
+) else (
+    echo [%date% %time%] Copied run.bat to install root>> "%INSTALL_LOG%"
+)
 
 (
     @echo off
@@ -260,10 +262,11 @@ echo   app\                     - everything stays here
 echo   logs\                    - installer logs
 echo.
 if !INNER_EXIT! equ 0 (
-    echo Ready: double-click run.bat
+    echo Ready: double-click run.bat in this folder
 ) else (
     echo Review %INSTALL_LOG% then re-run this installer
 )
 echo.
-pause
+echo Press any key to close this window...
+pause >nul
 exit /b !INNER_EXIT!
